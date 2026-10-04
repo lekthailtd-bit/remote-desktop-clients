@@ -46,7 +46,7 @@ jobs:
         run: ./bVNC/prepare_project.sh --skip-build libs nopath
 
       - name: Apply upstream FreeRDP glyph-cache patch
-        run: git -C remoteClientLib/jni/libs/deps/FreeRDP apply ../../../../19_freerdp_add_glyph_cache_to_bookmark.patch
+        run: git -C remoteClientLib/jni/libs/deps/FreeRDP apply "$GITHUB_WORKSPACE/remoteClientLib/jni/libs/19_freerdp_add_glyph_cache_to_bookmark.patch"
 
       - name: Build aSPICE debug APK
         run: ./gradlew :aSPICE-app:assembleDebug --stacktrace
