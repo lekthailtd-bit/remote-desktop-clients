@@ -1,0 +1,57 @@
+name: Build aSPICE APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci/build-aspice-apk
+    paths:
+      - '.github/workflows/build-aspice.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
+
+      - name: Download upstream prebuilt native dependencies
+        run: ./download-prebuilt-dependencies.sh
+
+      - name: Prepare project
+        run: ./bVNC/prepare_project.sh --skip-build libs nopath
+
+      - name: Build aSPICE debug APK
+        run: ./gradlew :aSPICE-app:assembleDebug --stacktrace
+
+      - name: Collect APKs
+        run: |
+          mkdir -p artifacts
+          find aSPICE-app/build/outputs/apk -type f -name '*.apk' -exec cp {} artifacts/ \;
+          ls -lh artifacts
+
+      - name: Upload aSPICE APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: aSPICE-debug-apks
+          path: artifacts/*.apk
+          if-no-files-found: error
+          retention-days: 14
