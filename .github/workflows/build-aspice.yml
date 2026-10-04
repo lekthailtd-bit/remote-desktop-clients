@@ -42,8 +42,16 @@ jobs:
       - name: Download upstream prebuilt native dependencies
         run: ./download-prebuilt-dependencies.sh
 
+      - name: Patch stale FreeRDP Java API in prebuilt bundle
+        run: |
+          patch --batch --forward -p1 \
+            -d remoteClientLib/jni/libs/deps/FreeRDP \
+            < remoteClientLib/jni/libs/19_freerdp_add_glyph_cache_to_bookmark.patch
+          grep -n "setGlyphCache" \
+            remoteClientLib/jni/libs/deps/FreeRDP/client/Android/Studio/freeRDPCore/src/main/java/com/freerdp/freerdpcore/domain/BookmarkBase.java
+
       - name: Prepare project
-        run: ./bVNC/prepare_project.sh --skip-build aSPICE nopath
+        run: ./bVNC/prepare_project.sh --skip-build libs nopath
 
       - name: Build aSPICE debug APK
         run: ./gradlew :aSPICE-app:assembleDebug --stacktrace
